@@ -39,11 +39,13 @@ def main(your_name):
 # now, let's actually run a program!
 #
 # in reality, there actually is a main called "__main__".
-# Double-double-underscores are "magic" methods provided by the interpreter
+#
+# We can worry about this in a later module, but the way it works is that
+# double-double-underscores are "magic" methods provided by the interpreter
 # under certain circumstances, like if you're running at the top-level or if
 # a class implements specific __interface__. This is called the "data model".
 #
-# this is actually how infix operators work: a class implements __add__,
+# this is actually how infix operators work: a class implements __add__.
 # see https://docs.python.org/3/reference/datamodel.html
 if __name__ == "__main__":
     if len(sys.argv) != 2:

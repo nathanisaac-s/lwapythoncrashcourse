@@ -26,9 +26,6 @@ setup(name="lwapythoncrashcourse",
       classifiers=_classifiers,
       keywords="pedantic learning lern larning language",
       install_requires=[ ],
-      packages=find_packages(exclude=("dnsreconciler.tests",
-                                      "iython_cluetrail",
-                                      "test",
-                                      "tests")),
-      entry_points={ "console_scripts" : ["lwanoob=noob:main",
-                                          "lwalessnoob=lessnoob:main"] })
+      packages=find_packages(exclude=("tests")),
+      entry_points={ "console_scripts" : ["lwanoob=weekone.noob:main",
+                                          "lwalessnoob=weekone.lessnoob:main"] })
