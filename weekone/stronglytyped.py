@@ -1,7 +1,13 @@
 #! /usr/bin/env python3
 # https://i.imgur.com/6aclmM6.png
 import time
+# imports can pull in individual parts of a module
+from datetime import datetime
+from collections import namedtuple
 
+# you'll see this later.
+# it's effectively a lightweight class.
+CallArgPair = namedtuple("CallArgPair", ["arg", "method"])
 
 def run_safely(potentially_broken_function):
     # python is newer than 1980 so it has exceptions. syntax is, of course,
@@ -10,7 +16,7 @@ def run_safely(potentially_broken_function):
         # Java may be the industry leader getting books about OOP printing,
         # but Python (and lots of other langs) have a stronger object model.
         #
-        # in Python, almost everything is an object (and the things that 
+        # in Python, almost everything is an object (and the things that
         # aren't, like infix operators, are usually sugar around the object
         # data model.
         #
@@ -19,7 +25,7 @@ def run_safely(potentially_broken_function):
         # done with a function. Cf. with Java prior to 1.8
         #
         # tl;dr: we can pass a method as a function.
-        potentially_broken_function()
+        return potentially_broken_function()
     except Exception as e:
         print("caught exception: {exc}\n  {msg}".format(exc=type(e), msg=e))
     # while not often used, python try-catch features an `else` that runs
@@ -33,7 +39,7 @@ def run_safely(potentially_broken_function):
 def run_an_eval(eval_str):
     try:
         # lol code injection on purpose
-        eval(eval_str)
+        return eval(eval_str)
     except Exception as e:
         print("caught exception: {exc}\n  {msg}".format(exc=type(e), msg=e))
     else:
@@ -41,6 +47,35 @@ def run_an_eval(eval_str):
     finally:
         print("ran {}.".format(eval_str))
 
+
+def run_arg_call_pair(arg_with_call):
+    try:
+        # mass assignment is possible.
+        arg, method = arg_with_call[0], arg_with_call[1]
+        # this isn't ideal since you could easily hit a type error here.
+        return method(arg)
+    except Exception as e:
+        print("caught exception: {exc}\n  {msg}".format(exc=type(e), msg=e))
+    else:
+        print("you ran `{}({})` successfully. programming is hard.".format(method, arg))
+    finally:
+        print("ran {}.".format(method))
+
+def run_typesafe_arg_call_pair(arg_with_call):
+    try:
+        # isinstance checks an object against a type.
+        # the `assert` keyword checks something is true.
+        assert isinstance(arg_with_call, CallArgPair)
+        arg_with_call.method(arg_with_call.arg)
+    except Exception as e:
+        print("caught exception on arg: {arg} {exc}\n  {msg}".format(arg=arg_with_call,
+                                                                     exc=type(e),
+                                                                     msg=e))
+    else:
+        print("you ran `{}({})` successfully. programming is hard.".format(arg_with_call.method,
+                                                                           arg_with_call.arg))
+    finally:
+        print("ran arg-call-pair: {}.".format(arg_with_call))
 
 def main():
     # python has had lambdas since about 2003 or so, which means that at least
@@ -64,9 +99,9 @@ def main():
 
     print("\n\n[+]    let's run some calls that take args.\n")
     # ...for example, you can name lambdas...
-    times_three = lambda x: x * 3,
-    five_plus_minus = lambda x: "5" + x - x,
-    five_minus_plus = lambda x: "5" - x + x,
+    times_three = lambda x: x * 3
+    five_plus_minus = lambda x: "5" + x - x
+    five_minus_plus = lambda x: "5" - x + x
 
     # ...or just inline it explicitly...
     def times_three_again(arg):
@@ -76,19 +111,38 @@ def main():
     def times_four(x): return x * 4
 
     # functions defined inline in another function only exist in that scope.
+    #
+    # if you haven't seen a tuple before, you have now.
+    # a tuple is an immutable array-like structure that is preeminantly useful.
     calls_with_args = [(1, times_three),
                        (1, five_minus_plus),
                        (1, five_plus_minus),
                        (1, times_three_again),
                        (1, times_four)]
 
+    # this doesn't work, but why?
     for every in calls_with_args:
         run_safely(every)
+    print("??? let's try again\n")
+    for _, every in calls_with_args:
+        run_safely(every)
+    print("??? and one more time.\n")
+    for call_with_arg in calls_with_args:
+        run_arg_call_pair(call_with_arg)
     print(79 * "-")
+
+    # what if you want more type safety?
+    print("Let's run this with some type checking.")
+    namedtup_calls_with_args = [CallArgPair(1, times_three),
+                                CallArgPair(1, times_three_again),
+                                datetime.now(),
+                                "blow up"]
+    for call_with_arg in namedtup_calls_with_args:
+        run_typesafe_arg_call_pair(call_with_arg)
 
     print("\n\n[+]    now let's do it Biznez Rewls style\n")
     # don't use evals.
-    calls_to_eval = ['"x * 3',
+    calls_to_eval = ['x * 3',
                      '"5" + + "5"',
                      '"foo" + + "foo"',
                      '"5" + - "2"',
