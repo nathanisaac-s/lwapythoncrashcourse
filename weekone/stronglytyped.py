@@ -9,6 +9,26 @@ from collections import namedtuple
 # it's effectively a lightweight class.
 CallArgPair = namedtuple("CallArgPair", ["arg", "method"])
 
+
+# python has classes--unlike Java, they aren't the unit of project structure
+# so they can be named anything and multiple classes can live in one file.
+#
+# worry about this later.
+class CallArg(object):  # inherit from object import for 'New-Style' classes.
+    # you probably want to define a constructor.
+    def __init__(self, arg, call):
+        self.arg = arg
+        self.call = call
+
+    # here's a magic method to get more sugar.
+    def __str__(self):
+        return "CallArg(call={}, arg={})".format(self.call, self.arg)
+
+    # python is unconcerned with method privacy.
+    def run(self):
+        self.call(self.arg)
+
+
 def run_safely(potentially_broken_function):
     # python is newer than 1980 so it has exceptions. syntax is, of course,
     # whitespace sensitive
@@ -26,7 +46,9 @@ def run_safely(potentially_broken_function):
         #
         # tl;dr: we can pass a method as a function.
         return potentially_broken_function()
-    except Exception as e:
+    # like with all exception-based languages it's bad practice to 
+    # catch all exceptions. But let's do that here for sake of demonstration.
+    except BaseException as e:
         print("caught exception: {exc}\n  {msg}".format(exc=type(e), msg=e))
     # while not often used, python try-catch features an `else` that runs
     # prior to `finally` if the block doesn't throw an error.
@@ -61,6 +83,7 @@ def run_arg_call_pair(arg_with_call):
     finally:
         print("ran {}.".format(method))
 
+
 def run_typesafe_arg_call_pair(arg_with_call):
     try:
         # isinstance checks an object against a type.
@@ -76,6 +99,26 @@ def run_typesafe_arg_call_pair(arg_with_call):
                                                                            arg_with_call.arg))
     finally:
         print("ran arg-call-pair: {}.".format(arg_with_call))
+
+
+def run_class_based(call_arg):
+    # python is dynamically typed AKA "duck typed" AKA late-bound, meaning
+    # you can get away with something like this.
+    try:
+        # because of late-binding, you don't know if the code will run until
+        # an object gets to the call site, so generally speaking some checking
+        # is a good thing.
+        #
+        # you could just asert, but let's try to be clever.
+        if not isinstance(call_arg, CallArg):
+            # try to instantiate on-demand from args
+            call_arg = CallArg(call_arg[0], call_arg[1])
+        call_arg.run()
+    except Exception as e:
+        print("caught exception: {exc}\n  {msg}".format(exc=type(e), msg=e))
+    else:
+        print("you ran `{}` successfully. programming is hard.".format(call_arg))
+
 
 def main():
     # python has had lambdas since about 2003 or so, which means that at least
@@ -139,6 +182,17 @@ def main():
                                 "blow up"]
     for call_with_arg in namedtup_calls_with_args:
         run_typesafe_arg_call_pair(call_with_arg)
+    print(79 * "-")
+
+    print("Maybe you like using classes though.")
+    #what if you <3 classes?
+    class_calls = [ CallArg(1, times_three),
+                    CallArg(1, times_three_again),
+                    (1, times_four),
+                    (0, 1),
+                    "not a class" ]
+    for each in class_calls:
+        run_class_based(each)
 
     print("\n\n[+]    now let's do it Biznez Rewls style\n")
     # don't use evals.
